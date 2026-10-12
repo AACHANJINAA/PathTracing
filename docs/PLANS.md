@@ -8,14 +8,14 @@
 
 ## 현재 마일스톤
 
-- M1 첫 레이 — `대기`
+- M2 누적과 확산 — `대기`
 
 ## 마일스톤 상태
 
 | ID | 주제 | 상태 | 비고 |
 | --- | --- | --- | --- |
 | M0 | 골격 | 구현 완료(사용자 검증 대기) | 남은 검증: V-BUILD(MSVC), V-RESIZE. llvm-mingw 컴파일·링크, DXC 셰이더 컴파일 통과 |
-| M1 | 첫 레이 | 대기 | |
+| M1 | 첫 레이 | 구현 완료(사용자 검증 대기) | KernelTool 테스트로 V-NORMAL, V-SCENE 통과(CPU). 남은 검증: V-BUILD(MSVC), GPU 화면의 Normal/Albedo/Depth 확인 |
 | M2 | 누적과 확산 | 대기 | |
 | M3 | 광원 샘플링 | 대기 | 참조 렌더러·저장 포맷 결정 필요 |
 | M4 | 재질 확장 | 대기 | |
@@ -25,8 +25,8 @@
 
 ## 다음 작업
 
-1. M1 카드를 `docs/WORK_REQUEST.md`에 복사해 시작
-2. 사용자: `PathTracing.slnx`를 Debug/Release x64로 빌드·실행해 V-BUILD, V-RESIZE 확인
+1. M2 카드를 `docs/WORK_REQUEST.md`에 복사해 시작
+2. 사용자: `PathTracing.slnx`를 Debug/Release x64로 빌드·실행해 V-BUILD, V-RESIZE, M1 디버그 화면 확인
 
 ## 확인 필요
 
@@ -43,4 +43,5 @@
 ## 최근 메모
 
 - 2026-10-13: 문서 구조 작성.
+- 2026-10-13: M1 첫 레이 구현. 커널을 C++로도 컴파일하는 `Tests/KernelTool` 추가.
 - 2026-10-13: M0 골격 구현. 셰이더 컴파일러는 FXC로 결정(DECISIONS). git은 사용자가 만든 `AACHANJINAA/PathTracing` 저장소 사용.

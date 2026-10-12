@@ -3,7 +3,7 @@
 import os, sys, uuid, pathlib
 
 ROOT = pathlib.Path(sys.argv[1])          # repository root
-EXTRA_PROJECTS = sys.argv[2:]             # extra project paths for the .slnx
+EXTRA_PROJECTS = sys.argv[2:] or [p for p in ['Tests/KernelTool.vcxproj'] if (ROOT / p).exists()]
 PROJ = ROOT / 'PathTracer'
 GUID = '{6C3B2F2A-5D1E-4C6B-9E2A-3F1D7A9B8C01}'
 
@@ -86,7 +86,7 @@ for c, dbg in configs:
 w('  <ItemGroup>')
 for p in cpps:
     r = rel(p)
-    if r.startswith('ThirdParty'):
+    if r.startswith(('ThirdParty', 'Scene\\', 'Output\\')):
         w(f'    <ClCompile Include="{r}"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>')
     elif r == 'Common\\stdafx.cpp':
         w(f'    <ClCompile Include="{r}"><PrecompiledHeader>Create</PrecompiledHeader><PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile></ClCompile>')

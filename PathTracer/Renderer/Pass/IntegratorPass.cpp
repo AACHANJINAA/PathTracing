@@ -2,6 +2,7 @@
 #include "IntegratorPass.h"
 #include "../Accumulator.h"
 #include "../ShaderCompiler.h"
+#include "../GpuScene.h"
 
 namespace
 {
@@ -27,6 +28,10 @@ bool INTEGRATOR_PASS::initialize(ID3D12Device* device, std::string& error)
     parameters[root_texture_table].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     parameters[root_texture_table].DescriptorTable.NumDescriptorRanges = 2;
     parameters[root_texture_table].DescriptorTable.pDescriptorRanges = ranges;
+    parameters[root_primitives].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+    parameters[root_primitives].Descriptor.ShaderRegister = 0;
+    parameters[root_materials].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+    parameters[root_materials].Descriptor.ShaderRegister = 1;
 
     const CD3DX12_ROOT_SIGNATURE_DESC root(root_parameter_count, parameters, D3D12_ROOT_SIGNATURE_FLAG_NONE);
     ComPtr<ID3DBlob> serialized, messages;
@@ -61,7 +66,7 @@ bool INTEGRATOR_PASS::initialize(ID3D12Device* device, std::string& error)
 }
 
 void INTEGRATOR_PASS::render(ID3D12GraphicsCommandList* list, UINT frame_slot,
-    const FRAME_CONSTANTS& constants, const ACCUMULATOR& accumulator)
+    const FRAME_CONSTANTS& constants, const ACCUMULATOR& accumulator, const GPU_SCENE& scene)
 {
     std::memcpy(_mapped[frame_slot], &constants, sizeof(constants));
     list->SetComputeRootSignature(_root_signature.Get());
@@ -70,6 +75,8 @@ void INTEGRATOR_PASS::render(ID3D12GraphicsCommandList* list, UINT frame_slot,
     list->SetDescriptorHeaps(1, heaps);
     list->SetComputeRootConstantBufferView(root_frame_constants, _constant_buffers[frame_slot]->GetGPUVirtualAddress());
     list->SetComputeRootDescriptorTable(root_texture_table, accumulator.get_integrator_table());
+    list->SetComputeRootShaderResourceView(root_primitives, scene.get_primitives());
+    list->SetComputeRootShaderResourceView(root_materials, scene.get_materials());
     list->Dispatch((constants.width + group_size - 1) / group_size,
         (constants.height + group_size - 1) / group_size, 1);
 }

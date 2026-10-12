@@ -73,10 +73,15 @@
     <ClCompile Include="Common\stdafx.cpp"><PrecompiledHeader>Create</PrecompiledHeader><PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile></ClCompile>
     <ClCompile Include="Core\main.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
     <ClCompile Include="Renderer\Accumulator.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\CameraController.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\GpuScene.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
     <ClCompile Include="Renderer\Pass\DisplayPass.cpp"><PrecompiledHeaderFile>..\..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
     <ClCompile Include="Renderer\Pass\IntegratorPass.cpp"><PrecompiledHeaderFile>..\..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
     <ClCompile Include="Renderer\Renderer.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
     <ClCompile Include="Renderer\ShaderCompiler.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Scene\Json.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="Scene\Scene.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="Scene\SceneLoader.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
     <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_dx12.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
     <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_win32.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
     <ClCompile Include="ThirdParty\ImGui\imgui.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
@@ -88,14 +93,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\D3DX12.h" />
+    <ClInclude Include="Common\HlslCompat.h" />
     <ClInclude Include="Common\HlslTypes.h" />
     <ClInclude Include="Common\stdafx.h" />
     <ClInclude Include="Renderer\Accumulator.h" />
+    <ClInclude Include="Renderer\CameraController.h" />
+    <ClInclude Include="Renderer\GpuScene.h" />
     <ClInclude Include="Renderer\Pass\DisplayPass.h" />
     <ClInclude Include="Renderer\Pass\IntegratorPass.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\ShaderCompiler.h" />
     <ClInclude Include="Renderer\ViewerSettings.h" />
+    <ClInclude Include="Scene\Json.h" />
+    <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Scene\SceneLoader.h" />
     <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_dx12.h" />
     <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_win32.h" />
     <ClInclude Include="ThirdParty\ImGui\imconfig.h" />
@@ -108,8 +119,11 @@
     <ClInclude Include="UI\ViewerUi.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Renderer\Shader\Camera.hlsli" />
     <None Include="Renderer\Shader\Display.hlsl" />
     <None Include="Renderer\Shader\Integrator.hlsl" />
+    <None Include="Renderer\Shader\Intersection.hlsli" />
+    <None Include="Renderer\Shader\Platform.hlsli" />
     <None Include="Renderer\Shader\Shared.hlsli" />
     <None Include="ThirdParty\ImGui\LICENSE.txt" />
     <None Include="ThirdParty\ImGui\VERSION.txt" />

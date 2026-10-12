@@ -11,6 +11,10 @@ struct VIEWER_STATS
     UINT height = 0;
     UINT frame_index = 0;
     UINT sample_count = 0;
+    const std::vector<std::string>* scene_names = nullptr;
+    int scene_index = -1;
+    UINT primitive_count = 0;
+    float fov_y = 45.0f;
 };
 
 // Requests the UI makes; the renderer applies them so it can wait for the GPU first.
@@ -18,6 +22,10 @@ struct VIEWER_REQUESTS
 {
     bool isreset = false;
     bool isfullscreen_toggle = false;
+    int load_scene_index = -1;   // >= 0: load this entry of scene_names
+    bool isreload_scene = false;
+    bool isreset_camera = false;
+    float fov_y = -1.0f;         // > 0: new vertical field of view
 };
 
 class VIEWER_UI

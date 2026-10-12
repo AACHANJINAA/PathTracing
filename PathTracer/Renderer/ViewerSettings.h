@@ -14,4 +14,8 @@ struct VIEWER_SETTINGS
     // Accumulation control (no reset)
     bool ispaused = false;
     unsigned target_spp = 0; // 0 = unlimited
+
+    // View (debug views are recomputed every frame, never accumulated)
+    unsigned debug_view = 0; // view_* in Shared.hlsli
+    float depth_range = 0.0f; // 0 = automatic from the scene bounds
 };

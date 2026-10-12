@@ -2,10 +2,13 @@
 
 #include "../Common/stdafx.h"
 #include "Accumulator.h"
+#include "CameraController.h"
+#include "GpuScene.h"
 #include "ViewerSettings.h"
 #include "Pass/IntegratorPass.h"
 #include "Pass/DisplayPass.h"
 #include "../UI/ViewerUi.h"
+#include "../Scene/Scene.h"
 
 // Window, device, swap chain and frame orchestration (docs/ARCHITECTURE.md section 3).
 class RENDERER
@@ -33,6 +36,10 @@ private:
     bool resize_swap_chain(UINT width, UINT height);
     void toggle_fullscreen();
     void render_frame();
+    void discover_scenes();
+    bool load_scene(int index, bool isinitial);
+    void apply_requests(const VIEWER_REQUESTS& requests);
+    bool is_estimate_changed(const VIEWER_SETTINGS& previous) const;
     bool wait_for_gpu();
     bool move_to_next_frame();
     void shutdown();
@@ -59,6 +66,15 @@ private:
     DISPLAY_PASS _display_pass;
     VIEWER_UI _ui;
     VIEWER_SETTINGS _settings;
+    VIEWER_SETTINGS _previous_settings;
+
+    SCENE _scene;
+    GPU_SCENE _gpu_scene;
+    CAMERA_CONTROLLER _camera;
+    std::vector<std::filesystem::path> _scene_files;
+    std::vector<std::string> _scene_names;
+    int _scene_index = -1;
+    UINT64 _last_tick = 0;
 
     bool _is_failed = false;
     bool _is_fullscreen = false;

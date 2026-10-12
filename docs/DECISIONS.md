@@ -46,6 +46,16 @@
   - 이유: 검증하지 않은 결과를 `완료`로 표시하지 않기 위해서다.
   - 영향: `docs/PLANS.md` 상태 정의, `docs/VERIFY.md`
 
+- `[2026-10-13] 커널 코드를 HLSL/C++ 공용으로 작성`
+  - 결정: 교차·샘플링·BSDF 커널은 `.hlsli`에 두고 C++(`Common/HlslCompat.h`)로도 컴파일해 `Tests/KernelTool`에서 실행한다.
+  - 이유: GPU 없이도 같은 코드를 단위·통계 테스트로 검증하고, 결과 이미지를 참조용으로 만들 수 있다.
+  - 영향: 커널 작성 규칙(`docs/ARCHITECTURE.md` 구조 변경 기록), `docs/VERIFY.md` 실행 도구
+
+- `[2026-10-13] 장면 JSON 파서 직접 구현`
+  - 결정: 외부 라이브러리 없이 `Scene/Json.*`로 파싱한다. 알 수 없는 키는 오류로 처리한다.
+  - 이유: 의존성 없이 Windows 앱과 KernelTool이 같은 로더를 쓰고, 오타를 조용히 무시하지 않기 위해서다.
+  - 영향: `Scene/SceneLoader.*`, `docs/ARCHITECTURE.md` 5장
+
 - `[2026-10-13] 기본값에서 편향 처리 금지`
   - 결정: firefly clamp 등 편향을 만드는 처리는 기본으로 끄고, 쓰더라도 UI에 `biased`로 표시한다.
   - 이유: 참조 이미지 대비 수렴 검증(V-CONVERGENCE)이 프로젝트의 핵심 근거이기 때문이다.

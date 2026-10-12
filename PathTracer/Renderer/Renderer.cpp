@@ -1,5 +1,7 @@
 #include "../Common/stdafx.h"
 #include "Renderer.h"
+#include "ShaderCompiler.h"
+#include "../Scene/SceneLoader.h"
 
 namespace
 {
@@ -15,6 +17,11 @@ namespace
         RECT rect{};
         GetClientRect(window, &rect);
         return static_cast<UINT>((std::max)(rect.bottom - rect.top, 0L));
+    }
+
+    std::filesystem::path executable_directory()
+    {
+        return SHADER_COMPILER::get_shader_directory().parent_path();
     }
 }
 
@@ -53,6 +60,14 @@ bool RENDERER::initialize(HINSTANCE instance, int show_command)
     if (!_integrator_pass.initialize(_device.Get(), error)) return fail("integrator_pass.initialize", error);
     if (!_display_pass.initialize(_device.Get(), error)) return fail("display_pass.initialize", error);
     if (!_ui.initialize(_window, _device.Get(), _command_queue.Get(), frame_count)) return fail("viewer_ui.initialize");
+
+    discover_scenes();
+    int initial = 0;
+    for (int index = 0; index < static_cast<int>(_scene_names.size()); ++index)
+        if (_scene_names[index] == "cornell_box") initial = index;
+    if (_scene_files.empty()) return fail("scene", "No scene files in " + (executable_directory() / "Scenes").string());
+    if (!load_scene(initial, true)) return false;
+    _previous_settings = _settings;
     return true;
 }
 
@@ -199,6 +214,66 @@ void RENDERER::toggle_fullscreen()
     _is_fullscreen = !_is_fullscreen;
 }
 
+void RENDERER::discover_scenes()
+{
+    _scene_files.clear();
+    _scene_names.clear();
+    std::error_code code;
+    const auto directory = executable_directory() / "Scenes";
+    for (const auto& entry : std::filesystem::directory_iterator(directory, code))
+        if (entry.is_regular_file() && entry.path().extension() == ".json") _scene_files.push_back(entry.path());
+    std::sort(_scene_files.begin(), _scene_files.end());
+    for (const auto& path : _scene_files) _scene_names.push_back(path.stem().string());
+}
+
+bool RENDERER::load_scene(int index, bool isinitial)
+{
+    if (index < 0 || index >= static_cast<int>(_scene_files.size())) return false;
+    SCENE loaded;
+    std::string error;
+    if (!SCENE_LOADER::load_file(_scene_files[index], loaded, error))
+    {
+        // V-SCENE: report and keep the current scene.
+        if (isinitial) return fail("scene load", error);
+        MessageBoxA(_window, error.c_str(), "Scene load failed", MB_OK | MB_ICONWARNING);
+        return false;
+    }
+    if (!wait_for_gpu()) return fail("wait_for_gpu (scene)");
+    if (!_gpu_scene.upload(_device.Get(), _command_queue.Get(), loaded, error))
+    {
+        if (isinitial) return fail("scene upload", error);
+        MessageBoxA(_window, error.c_str(), "Scene upload failed", MB_OK | MB_ICONWARNING);
+        return false;
+    }
+    _scene = std::move(loaded);
+    _scene_index = index;
+    _camera.reset(_scene.camera, _scene.bounding_radius());
+    _accumulator.reset();
+    SetWindowTextA(_window, ("PathTracer - " + _scene.name).c_str());
+    return true;
+}
+
+bool RENDERER::is_estimate_changed(const VIEWER_SETTINGS& previous) const
+{
+    return previous.debug_view != _settings.debug_view || previous.depth_range != _settings.depth_range;
+}
+
+void RENDERER::apply_requests(const VIEWER_REQUESTS& requests)
+{
+    if (requests.isfullscreen_toggle) toggle_fullscreen(); // new size is picked up next frame
+    if (requests.load_scene_index >= 0) load_scene(requests.load_scene_index, false);
+    if (requests.isreload_scene)
+    {
+        const auto current = _scene_index >= 0 ? _scene_files[_scene_index] : std::filesystem::path{};
+        discover_scenes();
+        const auto found = std::find(_scene_files.begin(), _scene_files.end(), current);
+        load_scene(found != _scene_files.end() ? static_cast<int>(found - _scene_files.begin()) : 0, false);
+    }
+    if (requests.isreset_camera) { _camera.reset(_scene.camera, _scene.bounding_radius()); _accumulator.reset(); }
+    if (requests.fov_y > 0.0f) { _camera.set_fov(requests.fov_y); _accumulator.reset(); }
+    if (requests.isreset) _accumulator.reset();
+}
+
 void RENDERER::render_frame()
 {
     const UINT width = client_width(_window);
@@ -210,26 +285,45 @@ void RENDERER::render_frame()
         if (!resize_swap_chain(width, height)) { fail("resize_swap_chain"); return; }
     }
 
+    const UINT64 tick = GetTickCount64();
+    const float delta_time = _last_tick ? (std::min)((tick - _last_tick) / 1000.0f, 0.1f) : 0.0f;
+    _last_tick = tick;
+
     _ui.begin_frame();
     VIEWER_STATS stats{ width, height, _accumulator.get_frame_index(), _accumulator.get_sample_count() };
+    stats.scene_names = &_scene_names;
+    stats.scene_index = _scene_index;
+    stats.primitive_count = _gpu_scene.get_primitive_count();
+    stats.fov_y = _camera.get_fov();
     const VIEWER_REQUESTS requests = _ui.draw(_settings, stats);
-    if (requests.isfullscreen_toggle)
-    {
-        toggle_fullscreen();
-        // The new client size is picked up by the resize check on the next frame.
-    }
-    if (requests.isreset) _accumulator.reset();
+    apply_requests(requests);
+    if (_is_failed) return;
+    if (_camera.update(delta_time, !_ui.wants_mouse(), !_ui.wants_keyboard())) _accumulator.reset();
+    if (is_estimate_changed(_previous_settings)) _accumulator.reset();
+    _previous_settings = _settings;
+    // M1: no accumulation yet; every frame is a fresh single-sample image.
+    _accumulator.reset();
 
     // Always render the first sample after a reset so the display never shows stale data.
     const UINT samples = 1;
     const bool isbelow_target = _settings.target_spp == 0 || _accumulator.get_sample_count() < _settings.target_spp;
     const bool isaccumulating = isbelow_target && (!_settings.ispaused || _accumulator.get_sample_count() == 0);
 
+    const CAMERA_BASIS camera = _camera.get_basis();
     FRAME_CONSTANTS constants{};
+    constants.camera_position = camera.position;
+    constants.camera_right = camera.right;
+    constants.camera_up = camera.up;
+    constants.camera_forward = camera.forward;
+    constants.tan_half_fov_y = camera.tan_half_fov_y;
     constants.width = _accumulator.get_width();
     constants.height = _accumulator.get_height();
+    constants.aspect = static_cast<float>(constants.width) / static_cast<float>(constants.height);
     constants.frame_index = _accumulator.get_frame_index();
     constants.sample_count = _accumulator.get_sample_count();
+    constants.primitive_count = _gpu_scene.get_primitive_count();
+    constants.debug_view = _settings.debug_view;
+    constants.depth_range = _settings.depth_range > 0.0f ? _settings.depth_range : _scene.bounding_radius() * 4.0f;
 
     auto& allocator = _allocators[_frame_index];
     if (FAILED(allocator->Reset()) || FAILED(_command_list->Reset(allocator.Get(), nullptr)))
@@ -237,7 +331,7 @@ void RENDERER::render_frame()
 
     if (isaccumulating)
     {
-        _integrator_pass.render(_command_list.Get(), _frame_index, constants, _accumulator);
+        _integrator_pass.render(_command_list.Get(), _frame_index, constants, _accumulator, _gpu_scene);
         _accumulator.advance(samples);
     }
 
@@ -302,6 +396,7 @@ void RENDERER::shutdown()
     _ui.shutdown();
     _display_pass.release();
     _integrator_pass.release();
+    _gpu_scene.release();
     _accumulator.release();
     if (_fence_event) { CloseHandle(_fence_event); _fence_event = nullptr; }
     _fence.Reset();

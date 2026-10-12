@@ -31,25 +31,24 @@ AI에게 작업 한 건을 요청할 때 쓰는 요청서입니다.
 
 ## 요청서
 
-- 작업 ID: M0
+- 작업 ID: M1
 - 작업 유형: 코드 구현
-- 작업 대상: 프로젝트 골격, D3D12 초기화, compute → 화면 출력 경로
-- 선행 조건: 없음
+- 작업 대상: 카메라 레이 생성, 도형 교차, 장면 로딩, 디버그 표시
+- 선행 조건: M0
 - 요청 내용:
-  - `docs/ARCHITECTURE.md`의 폴더 구조대로 솔루션과 프로젝트를 만든다.
-  - 창, 장치, 스왑체인, 프레임 동기화(Fence), 창 크기 변경을 구현한다.
-  - `R32G32B32A32_FLOAT` 누적 텍스처(UAV)에 compute shader로 UV 그라디언트를 쓴다.
-  - 톤 매핑 패스가 누적 텍스처를 읽어 백 버퍼에 그린다.
-  - ImGui로 FPS, 해상도, 프레임 번호를 표시한다.
-  - 재사용 가능 코드(`Math.h`, `D3DX12.h`, ImGui 통합, 카메라·입력)는 `D3D12` 프로젝트에서 가져오고 출처를 커밋 메시지에 적는다.
-- 참조할 문서: `docs/ARCHITECTURE.md`
-- 수정 허용 범위: 코드 전체 생성, `docs/PLANS.md`, `README.md`의 `빌드와 실행` 섹션
-- 건드리지 말 것: `Design/RENDERER_SPEC.md`, `docs/RENDERING_MODEL.md`
-- 원하는 결과: 빌드되는 빈 앱
-- 사용자 확인이 필요한 조건: 셰이더 컴파일러(DXC/FXC) 선택, `ARCHITECTURE.md`와 다른 폴더 구조가 필요할 때
+  - `docs/RENDERING_MODEL.md`의 좌표계·카메라 규약으로 픽셀 중심 레이를 만든다.
+  - Sphere, Quad, Box 교차 함수를 `intersect(ray, tmin, tmax) → hit` 형태로 구현한다.
+  - `Scenes/*.json`을 읽어 도형·재질 버퍼(StructuredBuffer)를 업로드한다.
+  - 디버그 표시: Normal, Albedo, Depth. 카메라 조작을 연결한다.
+  - `Scenes/cornell_box.json`을 작성한다.
+- 참조할 문서: `docs/RENDERING_MODEL.md`(좌표계, 카메라, 법선), `docs/ARCHITECTURE.md`(장면 형식, 바인딩)
+- 수정 허용 범위: `PathTracer/` 코드, `Scenes/`, `docs/PLANS.md`
+- 건드리지 말 것: `Design/RENDERER_SPEC.md`
+- 원하는 결과: Cornell Box가 Normal/Albedo/Depth로 올바르게 보인다.
+- 사용자 확인이 필요한 조건: 장면 JSON 형식을 `ARCHITECTURE.md`와 다르게 바꿔야 할 때
 - 완료 기준:
-  - Debug/Release x64 빌드 성공.
-  - 창에 그라디언트와 ImGui가 보이고 창 크기 변경·최소화 후에도 정상.
-  - Debug Layer 오류 없음.
-- 검증: V-BUILD, V-RESIZE
-- 메모: 사용자 지시(2026-10-13): M0~M7을 순서대로 연속 진행하고 마일스톤마다 커밋. 확인 필요 항목은 AI가 결정하고 DECISIONS에 기록한다. 이 환경은 Windows/GPU가 없어 MSVC 빌드·실행 검증은 사용자 몫이며, DXC로 셰이더 컴파일, llvm-mingw로 C++ 컴파일·링크를 대체 점검한다.
+  - 모든 도형의 법선이 바깥을 향하고 Normal 표시 색이 축 방향과 일치.
+  - 카메라 이동·회전이 규약대로 동작.
+  - 잘못된 JSON은 오류 메시지를 띄우고 기존 장면을 유지.
+- 검증: V-BUILD, V-NORMAL, V-SCENE
+- 메모: 사용자 지시(2026-10-13): 연속 진행. 셰이더 커널(.hlsli)을 C++로도 컴파일하는 CPU 하네스(Tests/)를 추가해 교차·장면 로딩을 단위 테스트한다(V-NORMAL, V-SCENE). 장면 JSON 파서는 외부 라이브러리 없이 직접 구현.

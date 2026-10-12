@@ -4,6 +4,7 @@
 #include "../Shader/Shared.hlsli"
 
 class ACCUMULATOR;
+class GPU_SCENE;
 
 // Path tracing compute pass: root signature, PSO, per-frame constants and dispatch.
 class INTEGRATOR_PASS
@@ -14,7 +15,7 @@ public:
 
     bool initialize(ID3D12Device* device, std::string& error);
     void render(ID3D12GraphicsCommandList* list, UINT frame_slot, const FRAME_CONSTANTS& constants,
-        const ACCUMULATOR& accumulator);
+        const ACCUMULATOR& accumulator, const GPU_SCENE& scene);
     void release();
 
 private:
@@ -22,6 +23,8 @@ private:
     {
         root_frame_constants = 0,
         root_texture_table,
+        root_primitives,
+        root_materials,
         root_parameter_count
     };
 

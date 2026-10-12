@@ -54,7 +54,20 @@ msbuild .\PathTracing.slnx /m /p:Configuration=Release /p:Platform=x64
 
 | 입력 | 동작 |
 | --- | --- |
+| 우클릭 드래그 | 카메라 회전 |
+| W/A/S/D, Q/E | 이동, 아래/위 (Shift: 빠르게) |
 | F11 | 창 / 전체화면 |
+
+장면은 실행 파일 옆 `Scenes/*.json`에서 고릅니다(`Scenes/` 폴더가 빌드 후 복사됨).
+
+### KernelTool (CPU 검증 도구)
+
+셰이더 커널 코드를 C++로 그대로 컴파일해 CPU에서 실행합니다. GPU 없이 교차·샘플링 로직을 테스트합니다.
+
+```powershell
+msbuild .\Tests\KernelTool.vcxproj /p:Configuration=Release /p:Platform=x64
+& .\Tests\bin\x64\Release\KernelTool.exe test
+```
 
 ## 폴더 구조
 

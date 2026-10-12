@@ -65,6 +65,31 @@ VIEWER_REQUESTS VIEWER_UI::draw(VIEWER_SETTINGS& settings, const VIEWER_STATS& s
         ImGui::Text("%u x %u", stats.width, stats.height);
         ImGui::Text("Frame %u   Samples %u spp", stats.frame_index, stats.sample_count);
 
+        ImGui::SeparatorText("SCENE");
+        if (stats.scene_names && !stats.scene_names->empty())
+        {
+            const auto& names = *stats.scene_names;
+            const char* preview = stats.scene_index >= 0 ? names[stats.scene_index].c_str() : "(none)";
+            if (ImGui::BeginCombo("Scene", preview))
+            {
+                for (int index = 0; index < static_cast<int>(names.size()); ++index)
+                    if (ImGui::Selectable(names[index].c_str(), index == stats.scene_index)) requests.load_scene_index = index;
+                ImGui::EndCombo();
+            }
+        }
+        if (ImGui::Button("RELOAD")) requests.isreload_scene = true;
+        ImGui::SameLine();
+        if (ImGui::Button("RESET CAMERA")) requests.isreset_camera = true;
+        ImGui::Text("%u primitives", stats.primitive_count);
+        float fov = stats.fov_y;
+        if (ImGui::SliderFloat("FOV Y", &fov, 5.0f, 120.0f, "%.1f deg")) requests.fov_y = fov;
+
+        ImGui::SeparatorText("VIEW");
+        const char* views[] = { "Lit", "Normal", "Albedo", "Depth" };
+        int view = static_cast<int>(settings.debug_view);
+        if (ImGui::Combo("View", &view, views, IM_ARRAYSIZE(views))) settings.debug_view = static_cast<unsigned>(view);
+        if (settings.debug_view == 3) ImGui::SliderFloat("Depth range", &settings.depth_range, 0.0f, 100.0f, settings.depth_range == 0.0f ? "auto" : "%.2f");
+
         ImGui::SeparatorText("ACCUMULATION");
         ImGui::Checkbox("Pause", &settings.ispaused);
         ImGui::SameLine();
@@ -78,6 +103,7 @@ VIEWER_REQUESTS VIEWER_UI::draw(VIEWER_SETTINGS& settings, const VIEWER_STATS& s
         int tonemap = static_cast<int>(settings.tonemap);
         if (ImGui::Combo("Tonemap", &tonemap, tonemaps, 3)) settings.tonemap = static_cast<TONEMAP>(tonemap);
         ImGui::Checkbox("VSync", &settings.isvsync);
+        ImGui::TextDisabled("RMB drag: look   WASD/QE: move   Shift: fast");
         ImGui::TextDisabled("F11: fullscreen");
     }
     ImGui::End();

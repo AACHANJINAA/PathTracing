@@ -1,0 +1,20 @@
+{
+  "name": "Cornell Box",
+  "camera": { "position": [0, 1, 6.8], "target": [0, 1, 0], "up": [0, 1, 0], "fov_y": 19.5 },
+  "materials": {
+    "white": { "type": "diffuse", "albedo": [0.725, 0.71, 0.68] },
+    "red":   { "type": "diffuse", "albedo": [0.63, 0.065, 0.05] },
+    "green": { "type": "diffuse", "albedo": [0.14, 0.45, 0.091] },
+    "light": { "type": "emissive", "radiance": [17, 12, 4] }
+  },
+  "primitives": [
+    { "type": "quad", "material": "white", "corner": [-1, 0, 1],  "u": [2, 0, 0],  "v": [0, 0, -2] },
+    { "type": "quad", "material": "white", "corner": [-1, 2, -1], "u": [2, 0, 0],  "v": [0, 0, 2] },
+    { "type": "quad", "material": "white", "corner": [-1, 0, -1], "u": [2, 0, 0],  "v": [0, 2, 0] },
+    { "type": "quad", "material": "red",   "corner": [-1, 0, 1],  "u": [0, 0, -2], "v": [0, 2, 0] },
+    { "type": "quad", "material": "green", "corner": [1, 0, -1],  "u": [0, 0, 2],  "v": [0, 2, 0] },
+    { "type": "quad", "material": "light", "corner": [-0.235, 1.98, -0.19], "u": [0.47, 0, 0], "v": [0, 0, 0.38] },
+    { "type": "box",  "material": "white", "min": [-0.63, 0, -0.62], "max": [-0.03, 1.2, -0.02], "rotation_y": 17 },
+    { "type": "box",  "material": "white", "min": [0.03, 0, -0.07],  "max": [0.63, 0.6, 0.53],   "rotation_y": -17 }
+  ]
+}
