@@ -56,6 +56,11 @@
   - 이유: 의존성 없이 Windows 앱과 KernelTool이 같은 로더를 쓰고, 오타를 조용히 무시하지 않기 위해서다.
   - 영향: `Scene/SceneLoader.*`, `docs/ARCHITECTURE.md` 5장
 
+- `[2026-10-13] max_depth는 경로 세그먼트 수, 비유한 샘플은 0으로 대체`
+  - 결정: `max_depth`는 경로의 최대 세그먼트 수(1 = 광원만, 2 = 직접광)로 정의한다. NaN/Inf 샘플은 0으로 대체해 누적하고 개수를 기록한다.
+  - 이유: BSDF/NEE/MIS가 같은 경로 집합을 다뤄야 V-NEE·V-MIS 비교가 성립한다. 샘플 수를 픽셀마다 다르게 두지 않아 누적 규칙을 단순하게 유지한다.
+  - 영향: `docs/RENDERING_MODEL.md` 8장·11장, `PathTrace.hlsli`, `Integrator.hlsl`. 카드상 RENDERING_MODEL 수정 금지였으나 M2 요청서 메모로 사용자 지시 범위에서 명확화함 — 사용자 확인 권장.
+
 - `[2026-10-13] 기본값에서 편향 처리 금지`
   - 결정: firefly clamp 등 편향을 만드는 처리는 기본으로 끄고, 쓰더라도 UI에 `biased`로 표시한다.
   - 이유: 참조 이미지 대비 수렴 검증(V-CONVERGENCE)이 프로젝트의 핵심 근거이기 때문이다.

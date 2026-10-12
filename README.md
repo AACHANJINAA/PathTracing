@@ -4,7 +4,7 @@ C++20 / Direct3D 12 compute shader로 만드는 **메시 없는 GPU Path Tracer*
 구·사각형·박스 같은 해석적 도형만으로 장면을 구성하고, 빛이 장면 안에서 튕기며 이동하는 과정을
 몬테카를로 적분으로 계산해 **물리적으로 정답에 가까운 이미지**를 만드는 것이 목표입니다.
 
-> 현재 상태: **문서 설계 단계**입니다. 코드는 `Design/IMPLEMENTATION_PLAN.md`의 M0부터 작성합니다.
+> 현재 상태: **M2 구현 완료(사용자 검증 대기)**. Cornell Box를 BSDF 샘플링 경로 추적으로 누적 렌더링합니다. 진행 상황은 `docs/PLANS.md`를 봅니다.
 
 ## Path Tracing이 무엇인가
 
@@ -59,6 +59,16 @@ msbuild .\PathTracing.slnx /m /p:Configuration=Release /p:Platform=x64
 | F11 | 창 / 전체화면 |
 
 장면은 실행 파일 옆 `Scenes/*.json`에서 고릅니다(`Scenes/` 폴더가 빌드 후 복사됨).
+
+| 패널 | 내용 |
+| --- | --- |
+| VIEW | Lit(누적), Normal, Albedo, Depth, Path length, NaN / Inf(마젠타 표시) |
+| INTEGRATOR | Max depth(경로 세그먼트 수), RR from, Seed, Samples/frame, 비유한 샘플 수 |
+| ACCUMULATION | Pause, RESET, Target spp |
+
+카메라·장면·Max depth·Seed를 바꾸면 누적이 리셋됩니다. 노출·톤 매핑은 리셋하지 않습니다.
+
+> 현재 구현 단계: **M2** (BSDF 샘플링만 사용하는 진행형 경로 추적). 광원 직접 샘플링(NEE)은 M3에서 추가합니다.
 
 ### KernelTool (CPU 검증 도구)
 

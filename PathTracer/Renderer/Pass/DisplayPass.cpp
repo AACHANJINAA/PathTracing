@@ -73,7 +73,7 @@ void DISPLAY_PASS::render(ID3D12GraphicsCommandList* list, const ACCUMULATOR& ac
     DISPLAY_CONSTANTS constants{};
     constants.exposure = settings.exposure;
     constants.tonemap = static_cast<uint>(settings.tonemap);
-    constants.flags = 0;
+    constants.flags = settings.debug_view == 5 ? 1u : 0u; // view_nan: highlight non-finite samples
     list->SetGraphicsRootSignature(_root_signature.Get());
     list->SetPipelineState(_pipeline.Get());
     ID3D12DescriptorHeap* heaps[] = { accumulator.get_heap() };

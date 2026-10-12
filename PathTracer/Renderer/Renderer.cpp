@@ -255,7 +255,9 @@ bool RENDERER::load_scene(int index, bool isinitial)
 
 bool RENDERER::is_estimate_changed(const VIEWER_SETTINGS& previous) const
 {
-    return previous.debug_view != _settings.debug_view || previous.depth_range != _settings.depth_range;
+    return previous.debug_view != _settings.debug_view || previous.depth_range != _settings.depth_range ||
+        previous.max_depth != _settings.max_depth || previous.russian_roulette_depth != _settings.russian_roulette_depth ||
+        previous.seed != _settings.seed;
 }
 
 void RENDERER::apply_requests(const VIEWER_REQUESTS& requests)
@@ -295,18 +297,22 @@ void RENDERER::render_frame()
     stats.scene_index = _scene_index;
     stats.primitive_count = _gpu_scene.get_primitive_count();
     stats.fov_y = _camera.get_fov();
+    stats.invalid_samples = _integrator_pass.get_invalid_samples();
     const VIEWER_REQUESTS requests = _ui.draw(_settings, stats);
     apply_requests(requests);
     if (_is_failed) return;
     if (_camera.update(delta_time, !_ui.wants_mouse(), !_ui.wants_keyboard())) _accumulator.reset();
     if (is_estimate_changed(_previous_settings)) _accumulator.reset();
     _previous_settings = _settings;
-    // M1: no accumulation yet; every frame is a fresh single-sample image.
-    _accumulator.reset();
+    // Debug views are a fresh single evaluation every frame; Lit and NaN views accumulate.
+    const bool isdebug_view = _settings.debug_view != 0 && _settings.debug_view != 5;
+    if (isdebug_view) _accumulator.reset();
 
     // Always render the first sample after a reset so the display never shows stale data.
-    const UINT samples = 1;
+    UINT samples = isdebug_view ? 1 : (std::max)(_settings.samples_per_frame, 1u);
     const bool isbelow_target = _settings.target_spp == 0 || _accumulator.get_sample_count() < _settings.target_spp;
+    if (_settings.target_spp != 0 && isbelow_target)
+        samples = (std::min)(samples, _settings.target_spp - _accumulator.get_sample_count());
     const bool isaccumulating = isbelow_target && (!_settings.ispaused || _accumulator.get_sample_count() == 0);
 
     const CAMERA_BASIS camera = _camera.get_basis();
@@ -324,6 +330,11 @@ void RENDERER::render_frame()
     constants.primitive_count = _gpu_scene.get_primitive_count();
     constants.debug_view = _settings.debug_view;
     constants.depth_range = _settings.depth_range > 0.0f ? _settings.depth_range : _scene.bounding_radius() * 4.0f;
+    constants.seed = _settings.seed;
+    constants.max_depth = (std::max)(_settings.max_depth, 1u);
+    constants.samples_per_frame = samples;
+    constants.russian_roulette_depth = (std::max)(_settings.russian_roulette_depth, 1u);
+    constants.sampling_mode = sampling_bsdf;
 
     auto& allocator = _allocators[_frame_index];
     if (FAILED(allocator->Reset()) || FAILED(_command_list->Reset(allocator.Get(), nullptr)))

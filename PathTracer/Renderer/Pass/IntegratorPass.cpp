@@ -32,6 +32,8 @@ bool INTEGRATOR_PASS::initialize(ID3D12Device* device, std::string& error)
     parameters[root_primitives].Descriptor.ShaderRegister = 0;
     parameters[root_materials].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
     parameters[root_materials].Descriptor.ShaderRegister = 1;
+    parameters[root_counters].ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
+    parameters[root_counters].Descriptor.ShaderRegister = 1;
 
     const CD3DX12_ROOT_SIGNATURE_DESC root(root_parameter_count, parameters, D3D12_ROOT_SIGNATURE_FLAG_NONE);
     ComPtr<ID3DBlob> serialized, messages;
@@ -62,13 +64,63 @@ bool INTEGRATOR_PASS::initialize(ID3D12Device* device, std::string& error)
         if (FAILED(_constant_buffers[index]->Map(0, &read, reinterpret_cast<void**>(&_mapped[index]))))
         { error = "Map frame constants"; return false; }
     }
+
+    const CD3DX12_HEAP_PROPERTIES default_heap(D3D12_HEAP_TYPE_DEFAULT);
+    const CD3DX12_HEAP_PROPERTIES readback_heap(D3D12_HEAP_TYPE_READBACK);
+    auto counter_description = CD3DX12_RESOURCE_DESC::buffer(sizeof(UINT));
+    counter_description.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    const auto small = CD3DX12_RESOURCE_DESC::buffer(sizeof(UINT));
+    if (FAILED(device->CreateCommittedResource(&default_heap, D3D12_HEAP_FLAG_NONE, &counter_description,
+        D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&_counters))) ||
+        FAILED(device->CreateCommittedResource(&upload, D3D12_HEAP_FLAG_NONE, &small,
+        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&_counter_zero))))
+    { error = "Counter buffers"; return false; }
+    void* zero = nullptr;
+    if (FAILED(_counter_zero->Map(0, nullptr, &zero))) { error = "Map counter zero"; return false; }
+    std::memset(zero, 0, sizeof(UINT));
+    _counter_zero->Unmap(0, nullptr);
+    for (auto& readback : _counter_readback)
+        if (FAILED(device->CreateCommittedResource(&readback_heap, D3D12_HEAP_FLAG_NONE, &small,
+            D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&readback))))
+        { error = "Counter readback"; return false; }
     return true;
 }
 
 void INTEGRATOR_PASS::render(ID3D12GraphicsCommandList* list, UINT frame_slot,
     const FRAME_CONSTANTS& constants, const ACCUMULATOR& accumulator, const GPU_SCENE& scene)
 {
+    // The previous use of this slot has completed (frame fence), so its readback is valid.
+    if (constants.sample_count == 0) { ++_generation; _invalid_samples = 0; }
+    if (_is_readback_pending[frame_slot] && _readback_generation[frame_slot] == _generation)
+    {
+        void* data = nullptr;
+        const D3D12_RANGE read{ 0, sizeof(UINT) };
+        if (SUCCEEDED(_counter_readback[frame_slot]->Map(0, &read, &data)))
+        {
+            std::memcpy(&_invalid_samples, data, sizeof(UINT));
+            const D3D12_RANGE written{ 0, 0 };
+            _counter_readback[frame_slot]->Unmap(0, &written);
+        }
+    }
+    _is_readback_pending[frame_slot] = false;
+
     std::memcpy(_mapped[frame_slot], &constants, sizeof(constants));
+    if (constants.sample_count == 0)
+    {
+        const auto to_copy = CD3DX12_RESOURCE_BARRIER::transition(_counters.Get(),
+            D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+        list->ResourceBarrier(1, &to_copy);
+        list->CopyBufferRegion(_counters.Get(), 0, _counter_zero.Get(), 0, sizeof(UINT));
+        const auto to_uav = CD3DX12_RESOURCE_BARRIER::transition(_counters.Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        list->ResourceBarrier(1, &to_uav);
+    }
+    else
+    {
+        const auto to_uav = CD3DX12_RESOURCE_BARRIER::transition(_counters.Get(),
+            D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        list->ResourceBarrier(1, &to_uav);
+    }
     list->SetComputeRootSignature(_root_signature.Get());
     list->SetPipelineState(_pipeline.Get());
     ID3D12DescriptorHeap* heaps[] = { accumulator.get_heap() };
@@ -77,8 +129,19 @@ void INTEGRATOR_PASS::render(ID3D12GraphicsCommandList* list, UINT frame_slot,
     list->SetComputeRootDescriptorTable(root_texture_table, accumulator.get_integrator_table());
     list->SetComputeRootShaderResourceView(root_primitives, scene.get_primitives());
     list->SetComputeRootShaderResourceView(root_materials, scene.get_materials());
+    list->SetComputeRootUnorderedAccessView(root_counters, _counters->GetGPUVirtualAddress());
     list->Dispatch((constants.width + group_size - 1) / group_size,
         (constants.height + group_size - 1) / group_size, 1);
+
+    const auto to_source = CD3DX12_RESOURCE_BARRIER::transition(_counters.Get(),
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+    list->ResourceBarrier(1, &to_source);
+    list->CopyBufferRegion(_counter_readback[frame_slot].Get(), 0, _counters.Get(), 0, sizeof(UINT));
+    const auto to_common = CD3DX12_RESOURCE_BARRIER::transition(_counters.Get(),
+        D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+    list->ResourceBarrier(1, &to_common);
+    _is_readback_pending[frame_slot] = true;
+    _readback_generation[frame_slot] = _generation;
 }
 
 void INTEGRATOR_PASS::release()
@@ -89,6 +152,10 @@ void INTEGRATOR_PASS::release()
         _mapped[index] = nullptr;
         _constant_buffers[index].Reset();
     }
+    _counters.Reset();
+    _counter_zero.Reset();
+    for (auto& readback : _counter_readback) readback.Reset();
+    _is_readback_pending = {};
     _pipeline.Reset();
     _root_signature.Reset();
 }

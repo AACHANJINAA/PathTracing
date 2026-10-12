@@ -17,6 +17,10 @@ static const uint view_lit = 0;
 static const uint view_normal = 1;
 static const uint view_albedo = 2;
 static const uint view_depth = 3;
+static const uint view_path_length = 4;
+static const uint view_nan = 5;          // lit accumulation + non-finite samples shown in magenta
+
+static const uint sampling_bsdf = 0;     // BSDF sampling only (emitters hit by chance)
 
 struct PRIMITIVE
 {
@@ -53,14 +57,19 @@ struct FRAME_CONSTANTS
     uint height;
 
     uint frame_index;
-    uint sample_count;
+    uint sample_count;          // samples already accumulated before this dispatch
     uint primitive_count;
     uint debug_view;
 
     float depth_range;
+    uint seed;
+    uint max_depth;             // maximum number of path segments (1 = emitters only)
+    uint samples_per_frame;
+
+    uint russian_roulette_depth;
+    uint sampling_mode;
     uint padding0;
     uint padding1;
-    uint padding2;
 };
 
 #endif

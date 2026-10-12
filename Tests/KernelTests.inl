@@ -207,6 +207,129 @@ namespace
         CHECK(SCENE_LOADER::load_text(valid, scene, message));
         CHECK(scene.primitives.size() == 1u);
     }
+    // ------------------------------------------------------------------ M2: sampling and accumulation
+    TEST(random_numbers_are_in_unit_interval_and_uniform, "V-DETERMINISM")
+    {
+        RNG rng = make_rng(3, 7, 11, 0);
+        double sum = 0.0;
+        float lowest = 1.0f, highest = 0.0f;
+        const int count = 200000;
+        for (int index = 0; index < count; ++index)
+        {
+            const float u = next_float(rng);
+            lowest = std::min(lowest, u);
+            highest = std::max(highest, u);
+            sum += u;
+        }
+        CHECK(lowest >= 0.0f);
+        CHECK(highest < 1.0f);
+        CHECK_NEAR(sum / count, 0.5, 0.005);
+        RNG a = make_rng(1, 2, 3, 4), b = make_rng(1, 2, 3, 4), c = make_rng(1, 2, 3, 5);
+        CHECK(next_float(a) == next_float(b));
+        CHECK(next_float(a) != next_float(c));
+    }
+
+    TEST(cosine_sampling_matches_its_pdf, "V-NAN")
+    {
+        // E[cos] under p = cos/pi is 2/3; every direction lies in the upper hemisphere.
+        RNG rng = make_rng(0, 0, 0, 1);
+        double sum = 0.0;
+        bool isupper = true;
+        const int count = 200000;
+        for (int index = 0; index < count; ++index)
+        {
+            const float3 d = sample_cosine_hemisphere(next_float(rng), next_float(rng));
+            isupper = isupper && d.z >= 0.0f && std::fabs(length(d) - 1.0f) < 1e-4f;
+            sum += d.z;
+        }
+        CHECK(isupper);
+        CHECK_NEAR(sum / count, 2.0 / 3.0, 0.005);
+        // Orthonormal frame for awkward normals (including -Z, the classic singularity).
+        for (float3 n : { make_float3(0, 0, 1), make_float3(0, 0, -1), normalize(make_float3(1, 2, 3)), make_float3(0, -1, 0) })
+        {
+            const SHADING_FRAME frame = make_frame(n);
+            CHECK_NEAR(dot(frame.tangent, frame.bitangent), 0.0, 1e-5);
+            CHECK_NEAR(dot(frame.tangent, n), 0.0, 1e-5);
+            CHECK(near3(cross(frame.tangent, frame.bitangent), n, 1e-5f));
+            CHECK(near3(to_world(frame, to_local(frame, make_float3(0.3f, -0.2f, 0.9f))), make_float3(0.3f, -0.2f, 0.9f), 1e-5f));
+        }
+    }
+
+    TEST(lambert_weight_equals_albedo, "V-NAN")
+    {
+        MATERIAL material{};
+        material.type = material_diffuse;
+        material.albedo = { 0.2f, 0.5f, 0.8f };
+        const float3 wo = normalize(make_float3(0.3f, 0.1f, 0.9f));
+        RNG rng = make_rng(0, 0, 0, 2);
+        for (int index = 0; index < 1000; ++index)
+        {
+            BSDF_SAMPLE sample;
+            CHECK(bsdf_sample(material, wo, next_float(rng), next_float(rng), next_float(rng), sample));
+            const float3 f = bsdf_eval(material, wo, sample.direction);
+            const float3 expected = f * sample.direction.z / sample.pdf;
+            CHECK(near3(sample.weight, expected, 1e-4f));
+            CHECK_NEAR(sample.pdf, bsdf_pdf(material, wo, sample.direction), 1e-5);
+        }
+        BSDF_SAMPLE sample;
+        CHECK(!bsdf_sample(material, make_float3(0, 0, -1), 0.5f, 0.5f, 0.5f, sample)); // wo below the surface
+    }
+
+    TEST(path_length_respects_max_depth, "V-NAN")
+    {
+        SCENE scene;
+        std::string error;
+        CHECK(SCENE_LOADER::load_file(scene_path("cornell_box.json"), scene, error));
+        cpu_bind_scene(scene, 32, 32);
+        for (uint depth : { 1u, 2u, 5u })
+        {
+            g_frame.max_depth = depth;
+            uint longest = 0;
+            for (uint s = 0; s < 64; ++s)
+            {
+                uint length;
+                render_sample(16, 16, s, length);
+                longest = std::max(longest, length);
+            }
+            CHECK(longest <= depth);
+        }
+        // max_depth = 1: only emitters are visible, so the floor (center-bottom pixel) is black.
+        g_frame.max_depth = 1;
+        uint length;
+        const float3 floor = render_sample(16, 30, 0, length);
+        CHECK(floor.x == 0.0f && floor.y == 0.0f && floor.z == 0.0f);
+    }
+
+    TEST(cornell_box_render_is_deterministic, "V-DETERMINISM")
+    {
+        SCENE scene;
+        std::string error;
+        CHECK(SCENE_LOADER::load_file(scene_path("cornell_box.json"), scene, error));
+        cpu_bind_scene(scene, 48, 48);
+        const CPU_IMAGE first = cpu_render(8);
+        const CPU_IMAGE second = cpu_render(8);
+        CHECK(first.pixels.size() == second.pixels.size());
+        CHECK(std::memcmp(first.pixels.data(), second.pixels.data(), first.pixels.size() * sizeof(float3)) == 0);
+        g_frame.seed = 1;
+        const CPU_IMAGE other_seed = cpu_render(8);
+        CHECK(std::memcmp(first.pixels.data(), other_seed.pixels.data(), first.pixels.size() * sizeof(float3)) != 0);
+    }
+
+    TEST(cornell_box_has_no_non_finite_samples, "V-NAN")
+    {
+        SCENE scene;
+        std::string error;
+        CHECK(SCENE_LOADER::load_file(scene_path("cornell_box.json"), scene, error));
+        const uint spp = context.isquick ? 64 : 1024;
+        cpu_bind_scene(scene, 32, 32);
+        const CPU_IMAGE image = cpu_render(spp);
+        CHECK(image.invalid_samples == 0u);
+        double sum = 0.0;
+        for (const float3& p : image.pixels) sum += p.x + p.y + p.z;
+        CHECK(std::isfinite(sum) && sum > 0.0);
+        std::printf("    %u spp, 32x32: invalid samples %u, mean rgb sum %.4f\n", spp, image.invalid_samples,
+            sum / image.pixels.size());
+    }
 }
 
 int run_tests(const std::vector<std::string>& arguments)

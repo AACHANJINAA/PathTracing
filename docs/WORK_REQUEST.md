@@ -31,24 +31,24 @@ AI에게 작업 한 건을 요청할 때 쓰는 요청서입니다.
 
 ## 요청서
 
-- 작업 ID: M1
+- 작업 ID: M2
 - 작업 유형: 코드 구현
-- 작업 대상: 카메라 레이 생성, 도형 교차, 장면 로딩, 디버그 표시
-- 선행 조건: M0
+- 작업 대상: 난수, 진행형 누적, Lambert BSDF, 발광 재질, 기본 경로 추적
+- 선행 조건: M1
 - 요청 내용:
-  - `docs/RENDERING_MODEL.md`의 좌표계·카메라 규약으로 픽셀 중심 레이를 만든다.
-  - Sphere, Quad, Box 교차 함수를 `intersect(ray, tmin, tmax) → hit` 형태로 구현한다.
-  - `Scenes/*.json`을 읽어 도형·재질 버퍼(StructuredBuffer)를 업로드한다.
-  - 디버그 표시: Normal, Albedo, Depth. 카메라 조작을 연결한다.
-  - `Scenes/cornell_box.json`을 작성한다.
-- 참조할 문서: `docs/RENDERING_MODEL.md`(좌표계, 카메라, 법선), `docs/ARCHITECTURE.md`(장면 형식, 바인딩)
+  - 픽셀·프레임·시드로 초기화하는 PCG 난수를 구현한다.
+  - 픽셀 지터 + 경로 추적 루프(최대 깊이, 러시안 룰렛)를 구현한다. 광원은 BSDF 샘플링으로 우연히 맞을 때만 기여한다.
+  - Lambert는 코사인 가중 반구 샘플링을 쓴다.
+  - 누적 규칙과 리셋 조건은 `docs/RENDERING_MODEL.md`를 따른다.
+  - UI: spp 표시, 누적 일시정지, 리셋 버튼, Max depth, Target spp, Seed. NaN/Inf 디버그 표시.
+- 참조할 문서: `docs/RENDERING_MODEL.md`(샘플링, 누적, 난수)
 - 수정 허용 범위: `PathTracer/` 코드, `Scenes/`, `docs/PLANS.md`
 - 건드리지 말 것: `Design/RENDERER_SPEC.md`
-- 원하는 결과: Cornell Box가 Normal/Albedo/Depth로 올바르게 보인다.
-- 사용자 확인이 필요한 조건: 장면 JSON 형식을 `ARCHITECTURE.md`와 다르게 바꿔야 할 때
+- 원하는 결과: Cornell Box가 노이즈에서 깨끗한 이미지로 수렴한다.
+- 사용자 확인이 필요한 조건: 누적 버퍼 형식이나 리셋 조건을 바꿔야 할 때
 - 완료 기준:
-  - 모든 도형의 법선이 바깥을 향하고 Normal 표시 색이 축 방향과 일치.
-  - 카메라 이동·회전이 규약대로 동작.
-  - 잘못된 JSON은 오류 메시지를 띄우고 기존 장면을 유지.
-- 검증: V-BUILD, V-NORMAL, V-SCENE
-- 메모: 사용자 지시(2026-10-13): 연속 진행. 셰이더 커널(.hlsli)을 C++로도 컴파일하는 CPU 하네스(Tests/)를 추가해 교차·장면 로딩을 단위 테스트한다(V-NORMAL, V-SCENE). 장면 JSON 파서는 외부 라이브러리 없이 직접 구현.
+  - 가만히 두면 수렴하고, 카메라를 움직이면 즉시 리셋.
+  - 같은 시드·spp에서 결과가 같다.
+  - 1024 spp까지 NaN/Inf 픽셀 0개.
+- 검증: V-BUILD, V-RESET, V-DETERMINISM, V-NAN
+- 메모: 사용자 지시(2026-10-13): M2까지 진행 후 종료. KernelTool(CPU)로 같은 커널을 메모리에서 렌더링해 V-DETERMINISM, V-NAN을 확인한다. 비유한 샘플 처리 방식(0으로 대체 후 개수 기록)을 RENDERING_MODEL 11장에 명확히 적는다.

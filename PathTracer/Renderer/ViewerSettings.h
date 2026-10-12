@@ -18,4 +18,10 @@ struct VIEWER_SETTINGS
     // View (debug views are recomputed every frame, never accumulated)
     unsigned debug_view = 0; // view_* in Shared.hlsli
     float depth_range = 0.0f; // 0 = automatic from the scene bounds
+
+    // Integrator (changing any of these resets accumulation)
+    unsigned max_depth = 8;
+    unsigned russian_roulette_depth = 3;
+    unsigned seed = 0;
+    unsigned samples_per_frame = 1; // not an estimate change: more samples of the same estimator
 };

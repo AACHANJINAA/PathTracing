@@ -119,11 +119,15 @@
     <ClInclude Include="UI\ViewerUi.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Renderer\Shader\Bsdf.hlsli" />
     <None Include="Renderer\Shader\Camera.hlsli" />
     <None Include="Renderer\Shader\Display.hlsl" />
     <None Include="Renderer\Shader\Integrator.hlsl" />
     <None Include="Renderer\Shader\Intersection.hlsli" />
+    <None Include="Renderer\Shader\PathTrace.hlsli" />
     <None Include="Renderer\Shader\Platform.hlsli" />
+    <None Include="Renderer\Shader\Random.hlsli" />
+    <None Include="Renderer\Shader\Sampling.hlsli" />
     <None Include="Renderer\Shader\Shared.hlsli" />
     <None Include="ThirdParty\ImGui\LICENSE.txt" />
     <None Include="ThirdParty\ImGui\VERSION.txt" />

@@ -58,11 +58,15 @@
     <ClInclude Include="ThirdParty\ImGui\imstb_truetype.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
     <ClInclude Include="UI\UiTheme.h"><Filter>UI</Filter></ClInclude>
     <ClInclude Include="UI\ViewerUi.h"><Filter>UI</Filter></ClInclude>
+    <None Include="Renderer\Shader\Bsdf.hlsli"><Filter>Renderer\Shader</Filter></None>
     <None Include="Renderer\Shader\Camera.hlsli"><Filter>Renderer\Shader</Filter></None>
     <None Include="Renderer\Shader\Display.hlsl"><Filter>Renderer\Shader</Filter></None>
     <None Include="Renderer\Shader\Integrator.hlsl"><Filter>Renderer\Shader</Filter></None>
     <None Include="Renderer\Shader\Intersection.hlsli"><Filter>Renderer\Shader</Filter></None>
+    <None Include="Renderer\Shader\PathTrace.hlsli"><Filter>Renderer\Shader</Filter></None>
     <None Include="Renderer\Shader\Platform.hlsli"><Filter>Renderer\Shader</Filter></None>
+    <None Include="Renderer\Shader\Random.hlsli"><Filter>Renderer\Shader</Filter></None>
+    <None Include="Renderer\Shader\Sampling.hlsli"><Filter>Renderer\Shader</Filter></None>
     <None Include="Renderer\Shader\Shared.hlsli"><Filter>Renderer\Shader</Filter></None>
     <None Include="ThirdParty\ImGui\LICENSE.txt"><Filter>ThirdParty\ImGui</Filter></None>
     <None Include="ThirdParty\ImGui\VERSION.txt"><Filter>ThirdParty\ImGui</Filter></None>

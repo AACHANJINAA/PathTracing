@@ -85,10 +85,22 @@ VIEWER_REQUESTS VIEWER_UI::draw(VIEWER_SETTINGS& settings, const VIEWER_STATS& s
         if (ImGui::SliderFloat("FOV Y", &fov, 5.0f, 120.0f, "%.1f deg")) requests.fov_y = fov;
 
         ImGui::SeparatorText("VIEW");
-        const char* views[] = { "Lit", "Normal", "Albedo", "Depth" };
+        const char* views[] = { "Lit", "Normal", "Albedo", "Depth", "Path length", "NaN / Inf" };
         int view = static_cast<int>(settings.debug_view);
         if (ImGui::Combo("View", &view, views, IM_ARRAYSIZE(views))) settings.debug_view = static_cast<unsigned>(view);
         if (settings.debug_view == 3) ImGui::SliderFloat("Depth range", &settings.depth_range, 0.0f, 100.0f, settings.depth_range == 0.0f ? "auto" : "%.2f");
+
+        ImGui::SeparatorText("INTEGRATOR");
+        int max_depth = static_cast<int>(settings.max_depth);
+        if (ImGui::SliderInt("Max depth", &max_depth, 1, 32)) settings.max_depth = static_cast<unsigned>(max_depth);
+        int rr_depth = static_cast<int>(settings.russian_roulette_depth);
+        if (ImGui::SliderInt("RR from", &rr_depth, 1, 32)) settings.russian_roulette_depth = static_cast<unsigned>(rr_depth);
+        int seed = static_cast<int>(settings.seed);
+        if (ImGui::InputInt("Seed", &seed)) settings.seed = static_cast<unsigned>((std::max)(seed, 0));
+        int per_frame = static_cast<int>(settings.samples_per_frame);
+        if (ImGui::SliderInt("Samples/frame", &per_frame, 1, 64)) settings.samples_per_frame = static_cast<unsigned>(per_frame);
+        if (stats.invalid_samples > 0) ImGui::TextColored({ 1.0f, 0.3f, 0.8f, 1.0f }, "Non-finite samples: %u", stats.invalid_samples);
+        else ImGui::TextDisabled("Non-finite samples: 0");
 
         ImGui::SeparatorText("ACCUMULATION");
         ImGui::Checkbox("Pause", &settings.ispaused);

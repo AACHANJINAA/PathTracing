@@ -42,6 +42,7 @@ float linear_to_srgb(float c)
 float4 ps_main(VS_OUTPUT input) : SV_TARGET
 {
     float4 value = g_accumulation.Load(int3(int2(input.position.xy), 0));
+    if ((g_display.flags & 1u) != 0u && value.a > 0.0f) return float4(1.0f, 0.0f, 1.0f, 1.0f);
     float3 color = max(value.rgb, 0.0f) * exp2(g_display.exposure);
     if (g_display.tonemap == tonemap_reinhard) color = color / (1.0f + color);
     else if (g_display.tonemap == tonemap_aces) color = tonemap_aces_fitted(color);

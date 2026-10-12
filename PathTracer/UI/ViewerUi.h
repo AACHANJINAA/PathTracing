@@ -15,6 +15,7 @@ struct VIEWER_STATS
     int scene_index = -1;
     UINT primitive_count = 0;
     float fov_y = 45.0f;
+    UINT invalid_samples = 0;
 };
 
 // Requests the UI makes; the renderer applies them so it can wait for the GPU first.

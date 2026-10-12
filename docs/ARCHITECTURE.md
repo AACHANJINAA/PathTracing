@@ -30,7 +30,8 @@ PathTracer/                       # 실행 프로젝트
       Intersection.hlsli          # 도형 교차
       Sampling.hlsli              # 반구·원뿔·면적 샘플링, 좌표계 변환
       Bsdf.hlsli                  # 재질별 eval/sample/pdf
-      Light.hlsli                 # 광원 선택·샘플링·pdf, 환경맵
+      Light.hlsli                 # 광원 선택·샘플링·pdf, 환경맵 (M3)
+      PathTrace.hlsli             # 경로 추적 루프, 레이 오프셋, 러시안 룰렛
   Scene/
     Scene.*                       # 도형·재질·광원·카메라 데이터 (CPU, GPU와 같은 레이아웃)
     SceneLoader.*                 # JSON → Scene, 입력 검증
@@ -88,8 +89,8 @@ Tests/                            # KernelTool: HLSL 커널을 C++로 컴파일�
 | t2 | `StructuredBuffer<LIGHT>` | 발광 도형 인덱스·선택 확률 | M3 |
 | t3 | `Texture2D<float4>` | HDR 환경맵 | M6 |
 | t4, t5 | `StructuredBuffer<float>` | 환경맵 marginal / conditional CDF | M6 |
-| u0 | `RWTexture2D<float4>` | 누적(평균) 결과 `R32G32B32A32_FLOAT` | M0 |
-| u1 | `RWStructuredBuffer<uint>` | 디버그 카운터(NaN 수 등) | M2 |
+| u0 | `RWTexture2D<float4>` | 누적 결과 `R32G32B32A32_FLOAT`: rgb = 평균 radiance, a = 그 픽셀의 비유한 샘플 수 | M0 |
+| u1 | `RWByteAddressBuffer` | 디버그 카운터 [0] = 리셋 이후 비유한 샘플 수. 프레임 슬롯별 readback으로 UI에 표시 | M2 |
 | s0 | 정적 샘플러 | 선형, 환경맵용 | M6 |
 
 - 구조체는 `Shader/Shared.hlsli`와 C++ 구조체를 1:1로 맞추고 C++ 쪽에 `static_assert(sizeof)`로 크기를 고정한다.
@@ -148,5 +149,6 @@ glTF·메시·텍스처 리소스 코드는 가져오지 않는다.
 ## 8. 구조 변경 기록
 
 - 2026-10-13: 초기 구조 정의(코드 미생성).
+- 2026-10-13 (M2): 디버그 카운터는 `RWByteAddressBuffer`(루트 UAV)로 구현. 평소 COMMON 상태로 두고 프레임 안에서 명시적으로 전환한다.
 - 2026-10-13 (M1): 커널 `.hlsli`를 C++로도 컴파일하는 `Tests/KernelTool` 추가. 커널 코드는 `OUT()/INOUT()` 매크로를 쓰고 `.x/.y/.z` 외 스위즐, `(T)0` 캐스트, 벡터 비교를 쓰지 않는다. `Scene/`, `Output/`은 Windows 헤더 없이 컴파일되도록 PCH를 쓰지 않는다.
 - 2026-10-13 (M0): `Math.h`와 Camera/Input 매니저는 가져오지 않음. 셰이더와 공유하는 구조체를 위해 `HlslTypes.h`를 두고, 카메라·입력은 M1에서 ImGui 입력 상태로 구현한다. 프로젝트 파일은 `Tools/generate_vcxproj.py`로 생성한다.

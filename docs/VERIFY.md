@@ -25,8 +25,8 @@
 | V-NORMAL | 교차·법선 | Normal 표시에서 축 방향 면 색 확인, `KernelTool test`의 V-NORMAL 테스트 | 법선 바깥쪽, `t`·법선 오차 1e-5 이내 | M1 |
 | V-SCENE | 장면 로딩 | 정상·오류 JSON 각각 로드 (`KernelTool test`, 앱의 RELOAD) | 오류 시 메시지 + 기존 장면 유지 | M1 |
 | V-RESET | 누적 리셋 | `RENDERING_MODEL.md` 10장 표의 각 동작 수행 | 표대로 리셋/유지 | M2 |
-| V-DETERMINISM | 재현성 | 같은 seed·spp로 두 번 저장 | HDR 파일 비트 단위 동일 | M2 |
-| V-NAN | 수치 안정성 | 모든 표준 장면 1024 spp, NaN 카운터 확인 | NaN/Inf 0 | M2 |
+| V-DETERMINISM | 재현성 | 같은 seed·spp로 두 번 저장(앱), `KernelTool test`의 V-DETERMINISM | HDR 파일 비트 단위 동일 | M2 |
+| V-NAN | 수치 안정성 | 모든 표준 장면 1024 spp, UI `Non-finite samples`·NaN 표시, `KernelTool test`의 V-NAN | NaN/Inf 0 | M2 |
 | V-NEE | NEE 정확성 | Cornell Box를 BSDF only / Light only로 각각 고 spp 렌더 | 평균 이미지 차이가 오차 범위 안, 같은 spp에서 Light only의 RMSE가 더 낮음 | M3 |
 | V-REFERENCE | 참조 일치 | 참조 렌더러 이미지와 RMSE 비교 | 기준 수치는 M3에서 측정 후 이 표에 기록 | M3 |
 | V-CONVERGENCE | 수렴률 | spp 1~4096에서 참조 대비 RMSE, log-log 기울기 | 기울기 ≈ -0.5 (편향 없으면 1/√N) | M3 |
@@ -46,6 +46,8 @@ M3 이후 측정한 기준값을 아래에 기록한다(장면, spp, 시드, RMS
 
 | 날짜 | V-ID | 장면 | 조건 | 결과 |
 | --- | --- | --- | --- | --- |
+| 2026-10-13 | V-NAN | cornell_box | KernelTool(CPU), 32×32, 1024 spp, seed 0, BSDF only | 비유한 샘플 0 (GPU 미검증) |
+| 2026-10-13 | V-DETERMINISM | cornell_box | KernelTool(CPU), 48×48, 8 spp | 두 번 렌더 비트 동일, seed 변경 시 다름 (GPU 미검증) |
 
 ## 알려진 문제
 
