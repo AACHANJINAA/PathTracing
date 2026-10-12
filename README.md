@@ -40,7 +40,21 @@ Path Tracer는 "빛의 이동을 직접 표본 추출"하므로 느리지만 근
 
 ## 빌드와 실행
 
-> M0 완료 후 작성합니다. 예정 환경: Windows, Direct3D 12 지원 GPU, MSVC(C++20), Windows SDK 10.0.
+- Windows, Direct3D 12 지원 GPU(Feature Level 11_0 이상)
+- Visual Studio 또는 Rider + MSVC `v145`, C++20, Windows SDK 10.0
+- 외부 패키지 설치 없음 (Dear ImGui는 저장소에 포함)
+
+```powershell
+msbuild .\PathTracing.slnx /m /p:Configuration=Release /p:Platform=x64
+& .\PathTracer\bin\x64\Release\PathTracer.exe
+```
+
+셰이더(`Shaders/`)는 빌드 후 실행 파일 옆으로 복사되고 실행 중 FXC로 컴파일됩니다.
+소스 파일을 추가·삭제했다면 `python Tools/generate_vcxproj.py .`로 프로젝트 파일을 다시 생성합니다.
+
+| 입력 | 동작 |
+| --- | --- |
+| F11 | 창 / 전체화면 |
 
 ## 폴더 구조
 

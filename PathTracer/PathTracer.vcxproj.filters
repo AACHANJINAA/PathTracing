@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common"><UniqueIdentifier>{3aa37105-127e-5634-a212-952ae06be39b}</UniqueIdentifier></Filter>
+    <Filter Include="Core"><UniqueIdentifier>{659e8033-d675-5e25-a8ee-b41fe8516bd2}</UniqueIdentifier></Filter>
+    <Filter Include="Renderer"><UniqueIdentifier>{dc4c273f-1e4d-5ab6-a41c-9a0097f31d07}</UniqueIdentifier></Filter>
+    <Filter Include="Renderer\Pass"><UniqueIdentifier>{a8bebc27-76be-594d-be06-325ba688c8cd}</UniqueIdentifier></Filter>
+    <Filter Include="Renderer\Shader"><UniqueIdentifier>{51d15388-37d7-5b24-a786-7b3292654d16}</UniqueIdentifier></Filter>
+    <Filter Include="ThirdParty"><UniqueIdentifier>{f5f33457-2e34-5da6-b899-a59aa0fab59b}</UniqueIdentifier></Filter>
+    <Filter Include="ThirdParty\ImGui"><UniqueIdentifier>{999a32ab-cb6c-5e83-aa42-ffd9b7917e0c}</UniqueIdentifier></Filter>
+    <Filter Include="ThirdParty\ImGui\backends"><UniqueIdentifier>{66a61ca5-6708-53d6-a2bc-e5cfc2e67a94}</UniqueIdentifier></Filter>
+    <Filter Include="UI"><UniqueIdentifier>{1ea2a9e5-030f-59f1-86f1-7d8cac856b61}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Common\stdafx.cpp"><Filter>Common</Filter></ClCompile>
+    <ClCompile Include="Core\main.cpp"><Filter>Core</Filter></ClCompile>
+    <ClCompile Include="Renderer\Accumulator.cpp"><Filter>Renderer</Filter></ClCompile>
+    <ClCompile Include="Renderer\Pass\DisplayPass.cpp"><Filter>Renderer\Pass</Filter></ClCompile>
+    <ClCompile Include="Renderer\Pass\IntegratorPass.cpp"><Filter>Renderer\Pass</Filter></ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp"><Filter>Renderer</Filter></ClCompile>
+    <ClCompile Include="Renderer\ShaderCompiler.cpp"><Filter>Renderer</Filter></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_dx12.cpp"><Filter>ThirdParty\ImGui\backends</Filter></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_win32.cpp"><Filter>ThirdParty\ImGui\backends</Filter></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui.cpp"><Filter>ThirdParty\ImGui</Filter></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_draw.cpp"><Filter>ThirdParty\ImGui</Filter></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_tables.cpp"><Filter>ThirdParty\ImGui</Filter></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_widgets.cpp"><Filter>ThirdParty\ImGui</Filter></ClCompile>
+    <ClCompile Include="UI\UiTheme.cpp"><Filter>UI</Filter></ClCompile>
+    <ClCompile Include="UI\ViewerUi.cpp"><Filter>UI</Filter></ClCompile>
+    <ClInclude Include="Common\D3DX12.h"><Filter>Common</Filter></ClInclude>
+    <ClInclude Include="Common\HlslTypes.h"><Filter>Common</Filter></ClInclude>
+    <ClInclude Include="Common\stdafx.h"><Filter>Common</Filter></ClInclude>
+    <ClInclude Include="Renderer\Accumulator.h"><Filter>Renderer</Filter></ClInclude>
+    <ClInclude Include="Renderer\Pass\DisplayPass.h"><Filter>Renderer\Pass</Filter></ClInclude>
+    <ClInclude Include="Renderer\Pass\IntegratorPass.h"><Filter>Renderer\Pass</Filter></ClInclude>
+    <ClInclude Include="Renderer\Renderer.h"><Filter>Renderer</Filter></ClInclude>
+    <ClInclude Include="Renderer\ShaderCompiler.h"><Filter>Renderer</Filter></ClInclude>
+    <ClInclude Include="Renderer\ViewerSettings.h"><Filter>Renderer</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_dx12.h"><Filter>ThirdParty\ImGui\backends</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_win32.h"><Filter>ThirdParty\ImGui\backends</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imconfig.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imgui.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imgui_internal.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imstb_rectpack.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imstb_textedit.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imstb_truetype.h"><Filter>ThirdParty\ImGui</Filter></ClInclude>
+    <ClInclude Include="UI\UiTheme.h"><Filter>UI</Filter></ClInclude>
+    <ClInclude Include="UI\ViewerUi.h"><Filter>UI</Filter></ClInclude>
+    <None Include="Renderer\Shader\Display.hlsl"><Filter>Renderer\Shader</Filter></None>
+    <None Include="Renderer\Shader\Integrator.hlsl"><Filter>Renderer\Shader</Filter></None>
+    <None Include="Renderer\Shader\Shared.hlsli"><Filter>Renderer\Shader</Filter></None>
+    <None Include="ThirdParty\ImGui\LICENSE.txt"><Filter>ThirdParty\ImGui</Filter></None>
+    <None Include="ThirdParty\ImGui\VERSION.txt"><Filter>ThirdParty\ImGui</Filter></None>
+  </ItemGroup>
+</Project>

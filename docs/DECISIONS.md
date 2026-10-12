@@ -36,6 +36,16 @@
   - 이유: 개인 학습 자료를 작업 흐름과 분리하고, AI가 구현 중 긴 이론 문서를 읽지 않게 하기 위해서다.
   - 영향: `docs/AI_USAGE.md`, `docs/WORKFLOW.md`, `Design/IMPLEMENTATION_PLAN.md`
 
+- `[2026-10-13] 셰이더 컴파일러는 FXC(SM 5.1)`
+  - 결정: 실행 중 `D3DCompileFromFile`(cs/vs/ps_5_1)로 컴파일한다. DXR이나 SM 6 기능이 필요해지면 DXC로 바꾼다.
+  - 이유: compute path tracer에 SM 6 기능이 필요 없고, D3D12 프로젝트에서 검증된 방식이라 추가 DLL 배포가 없다.
+  - 영향: `Renderer/ShaderCompiler.*`. 이 환경의 셰이더 문법 점검은 DXC(`-HV 2018`)로 대신한다.
+
+- `[2026-10-13] Windows/GPU가 없는 환경의 검증 방식`
+  - 결정: AI 작업 환경에서는 llvm-mingw로 앱 전체를 컴파일·링크하고 DXC로 셰이더를 컴파일해 V-BUILD를 대신 점검한다. MSVC 빌드와 GPU 실행 검증은 사용자가 하며, 그 전까지 마일스톤 상태는 `구현 완료(사용자 검증 대기)`로 둔다.
+  - 이유: 검증하지 않은 결과를 `완료`로 표시하지 않기 위해서다.
+  - 영향: `docs/PLANS.md` 상태 정의, `docs/VERIFY.md`
+
 - `[2026-10-13] 기본값에서 편향 처리 금지`
   - 결정: firefly clamp 등 편향을 만드는 처리는 기본으로 끄고, 쓰더라도 UI에 `biased`로 표시한다.
   - 이유: 참조 이미지 대비 수렴 검증(V-CONVERGENCE)이 프로젝트의 핵심 근거이기 때문이다.

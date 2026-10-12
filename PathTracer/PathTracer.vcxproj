@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{6C3B2F2A-5D1E-4C6B-9E2A-3F1D7A9B8C01}</ProjectGuid>
+    <RootNamespace>PathTracer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>PathTracer</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dwmapi.lib;imm32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dwmapi.lib;imm32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Common\stdafx.cpp"><PrecompiledHeader>Create</PrecompiledHeader><PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Core\main.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\Accumulator.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\Pass\DisplayPass.cpp"><PrecompiledHeaderFile>..\..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\Pass\IntegratorPass.cpp"><PrecompiledHeaderFile>..\..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="Renderer\ShaderCompiler.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_dx12.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_win32.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_draw.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_tables.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_widgets.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader></ClCompile>
+    <ClCompile Include="UI\UiTheme.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+    <ClCompile Include="UI\ViewerUi.cpp"><PrecompiledHeaderFile>..\Common\stdafx.h</PrecompiledHeaderFile></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common\D3DX12.h" />
+    <ClInclude Include="Common\HlslTypes.h" />
+    <ClInclude Include="Common\stdafx.h" />
+    <ClInclude Include="Renderer\Accumulator.h" />
+    <ClInclude Include="Renderer\Pass\DisplayPass.h" />
+    <ClInclude Include="Renderer\Pass\IntegratorPass.h" />
+    <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\ShaderCompiler.h" />
+    <ClInclude Include="Renderer\ViewerSettings.h" />
+    <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_dx12.h" />
+    <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="ThirdParty\ImGui\imconfig.h" />
+    <ClInclude Include="ThirdParty\ImGui\imgui.h" />
+    <ClInclude Include="ThirdParty\ImGui\imgui_internal.h" />
+    <ClInclude Include="ThirdParty\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="ThirdParty\ImGui\imstb_textedit.h" />
+    <ClInclude Include="ThirdParty\ImGui\imstb_truetype.h" />
+    <ClInclude Include="UI\UiTheme.h" />
+    <ClInclude Include="UI\ViewerUi.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Renderer\Shader\Display.hlsl" />
+    <None Include="Renderer\Shader\Integrator.hlsl" />
+    <None Include="Renderer\Shader\Shared.hlsli" />
+    <None Include="ThirdParty\ImGui\LICENSE.txt" />
+    <None Include="ThirdParty\ImGui\VERSION.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ItemGroup>
+    <RuntimeShader Include="$(ProjectDir)Renderer\Shader\**\*.hlsl;$(ProjectDir)Renderer\Shader\**\*.hlsli" />
+    <RuntimeScene Include="$(ProjectDir)..\Scenes\**\*.json" />
+    <RuntimeAsset Include="$(ProjectDir)..\Asset\**\*.*" />
+  </ItemGroup>
+  <Target Name="CopyRuntimeResources" AfterTargets="Build">
+    <Copy SourceFiles="@(RuntimeShader)" DestinationFiles="@(RuntimeShader->'$(OutDir)Shaders\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(RuntimeScene)" DestinationFiles="@(RuntimeScene->'$(OutDir)Scenes\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(RuntimeAsset)" DestinationFiles="@(RuntimeAsset->'$(OutDir)Asset\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

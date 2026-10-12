@@ -9,15 +9,16 @@
 PathTracing.slnx
 PathTracer/                       # 실행 프로젝트
   Core/main.cpp                   # 진입점
-  Common/                         # PCH(stdafx), Math.h, D3DX12.h
+  Common/                         # PCH(stdafx), D3DX12.h, HlslTypes.h(C++용 float3 등)
   Renderer/
     Renderer.*                    # 장치·스왑체인·프레임 동기화, 패스 실행 순서
+    ShaderCompiler.*              # 실행 중 FXC 컴파일 (Shaders/ 폴더)
+    ViewerSettings.h              # UI가 편집하는 설정
     GpuScene.*                    # 장면 → GPU 버퍼 업로드, 변경 감지
     Accumulator.*                 # 누적 텍스처, spp 카운트, 리셋
     Pass/
       IntegratorPass.*            # path tracing compute dispatch
       DisplayPass.*               # 노출·톤 매핑·sRGB → 백 버퍼
-    Manager/                      # Camera, Input (D3D12 프로젝트에서 가져옴)
     Shader/
       Integrator.hlsl             # 경로 추적 메인 (compute)
       Display.hlsl                # 톤 매핑 (fullscreen)
@@ -36,7 +37,7 @@ PathTracer/                       # 실행 프로젝트
 Scenes/                           # *.json 장면
 Asset/                            # HDR 환경맵 (M6)
 Reference/                        # 참조 렌더러 장면 변환본·참조 이미지 (M3)
-Tools/                            # 이미지 비교(RMSE), 수렴 그래프 스크립트 (M3, M7)
+Tools/                            # generate_vcxproj.py, 이미지 비교(RMSE), 수렴 그래프 스크립트 (M3, M7)
 Captures/                         # README용 결과 이미지 (M5, M7)
 Tests/                            # CPU 측 단위 테스트(교차·샘플링 함수 검증)
 ```
@@ -46,6 +47,7 @@ Tests/                            # CPU 측 단위 테스트(교차·샘플링 �
 | 모듈 | 책임 | 하지 않는 일 |
 | --- | --- | --- |
 | `Renderer` | 초기화, 프레임 순서, 제출, 창 크기 변경, 종료 | 장면 해석, 셰이딩 |
+| `ShaderCompiler` | `Shaders/`의 HLSL을 FXC(SM 5.1)로 컴파일, 오류 메시지 반환 | 캐시 |
 | `GpuScene` | Scene을 StructuredBuffer로 변환·업로드, 변경 시 누적 리셋 요청 | 파일 입출력 |
 | `Accumulator` | 누적 텍스처 수명, spp, 리셋 조건 판정 | 샘플 계산 |
 | `IntegratorPass` | 루트 시그니처·PSO, 프레임 상수, dispatch | 표시 변환 |
@@ -63,7 +65,7 @@ Tests/                            # CPU 측 단위 테스트(교차·샘플링 �
   → UI → Present
 ```
 
-- 누적 텍스처는 `UNORDERED_ACCESS`와 `NON_PIXEL_SHADER_RESOURCE` 사이를 명시적으로 전환한다.
+- 누적 텍스처는 평소 `UNORDERED_ACCESS`에 두고, 표시 패스(픽셀 셰이더) 동안만 `PIXEL_SHADER_RESOURCE`로 전환한다.
 - 장면 버퍼 재업로드는 GPU 완료를 기다린 뒤 수행한다.
 
 ## 4. GPU 리소스와 바인딩
@@ -132,3 +134,4 @@ glTF·메시·텍스처 리소스 코드는 가져오지 않는다.
 ## 8. 구조 변경 기록
 
 - 2026-10-13: 초기 구조 정의(코드 미생성).
+- 2026-10-13 (M0): `Math.h`와 Camera/Input 매니저는 가져오지 않음. 셰이더와 공유하는 구조체를 위해 `HlslTypes.h`를 두고, 카메라·입력은 M1에서 ImGui 입력 상태로 구현한다. 프로젝트 파일은 `Tools/generate_vcxproj.py`로 생성한다.
