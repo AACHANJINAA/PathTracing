@@ -58,6 +58,7 @@ docs/
   VERIFY.md                   # 검증 항목(V-ID)과 완료 기준
   PLANS.md                    # 현재 상태, 다음 작업, 보류·확인 필요 항목
   DECISIONS.md                # 확정된 결정만 짧게 기록
+Study/                        # 예외 자료 (작업 흐름 밖)
   PATH_TRACING_STUDY.md       # 이론 학습 노트: 렌더링 방정식부터 MIS까지
 ```
 
@@ -74,4 +75,6 @@ IMPLEMENTATION_PLAN의 마일스톤 카드 복사
   → 커밋
 ```
 
-처음 읽는다면 **README → `docs/PATH_TRACING_STUDY.md` → `Design/RENDERER_SPEC.md`** 순서를 추천합니다.
+`Study/`는 개인 학습용 예외 자료로, 위 작업 흐름(카드·요청서·문서 갱신)에 포함되지 않습니다.
+
+처음 읽는다면 **README → `Study/PATH_TRACING_STUDY.md` → `Design/RENDERER_SPEC.md`** 순서를 추천합니다.
